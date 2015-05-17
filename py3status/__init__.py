@@ -8,6 +8,7 @@ import locale
 import os
 import select
 import sys
+import subprocess
 
 from collections import OrderedDict
 from contextlib import contextmanager
@@ -31,7 +32,7 @@ except ImportError:
     pass
 
 # Used in development
-enable_profiling = False
+enable_profiling = False 
 
 
 def profile(thread_run_fn):
@@ -521,7 +522,7 @@ class I3status(Thread):
                 try:
                     # at first, poll very quickly
                     # to avoid delay in first i3bar display
-                    timeout = 0.001
+                    timeout = 0.1
 
                     # loop on i3status output
                     while self.lock.is_set():
@@ -1685,7 +1686,7 @@ def main():
         py3.setup()
     except KeyboardInterrupt:
         err = sys.exc_info()[1]
-        py3.i3_nagbar('setup interrupted (KeyboardInterrupt)')
+        #py3.i3_nagbar('setup interrupted (KeyboardInterrupt)')
         sys.exit(0)
     except Exception:
         err = sys.exc_info()[1]

@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Display system RAM and CPU utilization.
+Display CPU utilization.
 
 NOTE: If you want py3status to show you your CPU temperature,
 change value of CPUTEMP into True in Py3status class - CPUInfo function
 and REMEMBER that you must install lm_sensors if you want CPU temp!
 
 @author Shahin Azad <ishahinism at Gmail>
+
+modified by Brian Bove <bmbove at Gmail>
 """
 
 import subprocess
@@ -44,31 +46,15 @@ class GetData:
         different kinds of work.  Time units are in USER_HZ
         (typically hundredths of a second)
         """
-        with open('/proc/stat', 'r') as fd:
-            line = fd.readline()
+        with open('/proc/stat', 'r') as fh:
+            lines = [line.strip() for line in fh]
+
         cpu_data = line.split()
         total_cpu_time = sum(map(int, cpu_data[1:]))
         cpu_idle_time = int(cpu_data[4])
 
         #return the cpu total&idle time
         return total_cpu_time, cpu_idle_time
-
-    def memory(self):
-        """Execute 'free -m' command, grab the memory capacity and used size
-        then return; Memory size 'total_mem', Used_mem, and percentage
-        of used memory.
-
-        """
-        # Run 'free -m' command and make a list from output.
-        mem_data = self.execCMD('free', '-m').split()
-        mem_index = mem_data.index('Mem:')
-        total_mem = int(mem_data[mem_index + 1]) / 1024.
-        used_mem = int(mem_data[mem_index + 2]) / 1024.
-        # Caculate percentage
-        used_mem_percent = int(used_mem / (total_mem / 100))
-
-        # Results are in kilobyte.
-        return total_mem, used_mem, used_mem_percent
 
 
 class Py3status:
@@ -119,28 +105,6 @@ class Py3status:
 
         return response
 
-    def ramInfo(self, i3s_output_list, i3s_config):
-        """Calculate the memory (RAM) status and return it.
-        """
-        response = {'full_text': ''}
-        total_mem, used_mem, used_mem_percent = self.data.memory()
-
-        if used_mem_percent <= self.med_threshold:
-            response['color'] = i3s_config['color_good']
-        elif used_mem_percent <= self.high_threshold:
-            response['color'] = i3s_config['color_degraded']
-        else:
-            response['color'] = i3s_config['color_bad']
-
-        response['full_text'] = "RAM: %.2f/%.2f GB (%d%%)" % (
-            used_mem,
-            total_mem,
-            used_mem_percent
-        )
-        response['cached_until'] = time() + self.cache_timeout
-
-        return response
-
 if __name__ == "__main__":
     """
     Test this module by calling it directly.
@@ -153,5 +117,4 @@ if __name__ == "__main__":
     }
     while True:
         print(x.cpuInfo([], config))
-        print(x.ramInfo([], config))
         sleep(1)
